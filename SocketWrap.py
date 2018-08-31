@@ -238,7 +238,7 @@ class Socket():
 	#
 	# All types that can be pickled using pickle are supported, however, pickle can be slow, therefore a warning is printed each time something is sent using pickle.
 	# \warning When sending files, they are assumed to already be opened using f = open(...)
-	def Send(self, msg):
+	def send(self, msg):
 		if type(msg) == list or type(msg) == tuple:
 			self._sendType(LIST, msg)
 		elif isinstance(msg, str):
@@ -262,7 +262,7 @@ class Socket():
 	# This will automatically resolve the type that has been received and act accordingly.
 	# @param *args Any arguments to pass to the internal methods
 	# @param **kwargs Any keyword arguments to pass to the internal methods
-	def Recv(self, *args, **kwargs):
+	def recv(self, *args, **kwargs):
 		type, msg = self._recvType()
 		if type == SHORT_STR:
 			return msg
@@ -284,16 +284,16 @@ class Socket():
 			return ret
 			
 	## Send a message and immediatly wait for a response
-	# @see Send
-	# @see Recv
-	def SendRecv(self, msg):
+	# @see send
+	# @see recv
+	def sendRecv(self, msg):
 		self._send(msg)
 		return self._recvData()
 	
 	## Recieve a msg and immediatly respond
-	# @see Send
-	# @see Recv
-	def RecvSend(self, msg):
+	# @see send
+	# @see recv
+	def recvSend(self, msg):
 		ret = self._recvData()
 		self._send(msg)
 		return ret
@@ -332,76 +332,76 @@ if __name__ == "__main__":
 			
 		def SendInt(self):
 			with Status_Info("Connection -> Client"):
-				self.connection.Send(1337)
-				int = self.client.Recv()
+				self.connection.send(1337)
+				int = self.client.recv()
 				assert int == 1337
-				self.connection.Send(9321)
-				int = self.client.Recv()
+				self.connection.send(9321)
+				int = self.client.recv()
 				assert int == 9321
 			with Status_Info("Client -> Connection"):
-				self.client.Send(1337)
-				int = self.connection.Recv()
+				self.client.send(1337)
+				int = self.connection.recv()
 				assert int == 1337
-				self.client.Send(9321)
-				int = self.connection.Recv()
+				self.client.send(9321)
+				int = self.connection.recv()
 				assert int == 9321
 		def SendShortString(self):
 			with Status_Info("Connection -> Client"):
-				self.connection.Send("Test")
-				s = self.client.Recv()
+				self.connection.send("Test")
+				s = self.client.recv()
 				assert s == "Test"
-				self.connection.Send("AnotherTest")
-				s = self.client.Recv()
+				self.connection.send("AnotherTest")
+				s = self.client.recv()
 				assert s == "AnotherTest"
 			with Status_Info("Client -> Connection"):
-				self.client.Send("Test")
-				s = self.connection.Recv()
+				self.client.send("Test")
+				s = self.connection.recv()
 				assert s == "Test"
-				self.client.Send("AnotherTest")
-				s = self.connection.Recv()
+				self.client.send("AnotherTest")
+				s = self.connection.recv()
 				assert s == "AnotherTest"
 		def SendLongString(self):
 			import string
 			import random
 			msg = ''.join([random.choice(string.ascii_letters + string.digits) for x in range(10000)])
 			with Status_Info("Connection -> Client"):
-				self.connection.Send(msg)
-				s = self.client.Recv()
+				self.connection.send(msg)
+				s = self.client.recv()
 				assert s == msg
 				
 			with Status_Info("Client -> Connection"):
-				self.client.Send(msg)
-				s = self.connection.Recv()
+				self.client.send(msg)
+				s = self.connection.recv()
 				assert s == msg
 		def _sendNumpyArray(self):
 			with Status_Info("Small int"):
 				array = np.array([[1,2,3],[4,5,6]])
-				self.connection.Send(array)
-				recv = self.client.Recv()
+				self.connection.send(array)
+				recv = self.client.recv()
 				assert np.array_equal(recv, array) == True
 			with Status_Info("Large float"):
 				array = np.random.rand(3280, 1024)
-				self.client.Send(array)
-				recv = self.connection.Recv()
+				self.client.send(array)
+				recv = self.connection.recv()
 				assert np.array_equal(recv, array) == True
 		def SendList(self):
 			with Status_Info("List"):
 				import random
 				list = random.sample(range(0, 10000), 10000)
-				self.connection.Send(list)
-				recv = self.client.Recv()
+				self.connection.send(list)
+				recv = self.client.recv()
 				for i in range(0, 10000):
 					assert recv[i] == list[i]
 			with Status_Info("Tuple"):
 				tuple = (1,2,3,4,2,2,2.3, "Test")
-				self.client.Send(tuple)
-				recv = self.connection.Recv()
+				self.client.send(tuple)
+				recv = self.connection.recv()
 				for i, v in enumerate(tuple):
 					assert recv[i] == v
 		def SendClass(self):		
 			data = Data()
-			self.connection.Send(data)
-			recv = self.client.Recv()
+			self.connection.send(data)
+			recv = self.client.recv()
 			assert recv.a == data.a
 			assert recv.b == data.b
 			assert recv.c == data.c
@@ -409,8 +409,8 @@ if __name__ == "__main__":
 			with open("Test.txt", "w") as f:
 				f.write("Test")
 			with open("Test.txt", "rb") as f:
-				self.connection.Send(f)
-			filename = self.client.Recv(filename = "Test2.txt")
+				self.connection.send(f)
+			filename = self.client.recv(filename = "Test2.txt")
 			assert filename == "Test2.txt"
 			with open("Test.txt", "r") as f1:
 				with open("Test2.txt", "r") as f2:
@@ -418,8 +418,8 @@ if __name__ == "__main__":
 			os.remove("Test.txt")
 			os.remove("Test2.txt")
 		def SendEnum(self):
-			self.connection.Send(TestEnum.A)
-			recv = self.client.Recv()
+			self.connection.send(TestEnum.A)
+			recv = self.client.recv()
 			assert recv == TestEnum.A
 	#with Status_Info("Normal socket"):
 	with Status_Info("Initiating test"): test = Test()
