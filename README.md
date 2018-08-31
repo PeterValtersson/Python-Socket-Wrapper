@@ -33,6 +33,10 @@ class Test:
     self.c = np.array([1,2,3])
 sock.send(Test())
 
+# Sending a file
+with open("Myfile", "rb") as f:
+	sock.send(f)
+	
 ##### Server
 import SocketWrap
 listener = SocketWrap.Socket()
@@ -44,9 +48,13 @@ print(client.recv()) # Prints 'Hello'
 print(client.recv()) # Prints '5'
 print(client.recv()) # Prints '("Tuple", True)'
 
-client.send("send and recv and be done in any order.")
+client.send("You can communicate both ways.")
 
 # Numpy arrays are supported
 numpyArray = client.recv()
 testClass = client.recv()
+
+client.recv("Myfile") # The path/name can be specified when receving files. If not specified the original name will be used and the file will be placed in the current working directory.
 ```
+
+More examples can be found in SocketWrap.py
