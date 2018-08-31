@@ -1,21 +1,6 @@
-## @package LHMT_Base
-#  This module includes the log and the base application logic (update loop)
-
 import time
 parent = None
 import sys, traceback, os
-
-## Connection lost exception
-#
-# This exception indicates that a socket has lost connection. 
-# This is most likely due to one side of the connection having exited.
-# This exception is caught during runtime and resolved.
-class LHMT_ConnectionLost(Exception):
-	def __init__(self, socket):
-		self.socket = socket
-		Exception.__init__(self, "ConnectionLost")
-
-
 
 
 def GetEnumerate(e):
@@ -203,7 +188,7 @@ def Status_Importer(*a, p = "True", level = INFO_LEVEL,  **kw):
 	global Printer
 	def CreateLog():
 		global LogFile
-		LogFilePath = time.strftime("Logs/Log-%d-%m-%y_%H.%M.%S")
+		LogFilePath = time.strftime("Logs/Log-%d-%m-%y_%H.%M.%S.log")
 		try: os.makedirs("Logs")
 		except: pass
 		LogFile = open(LogFilePath, 'w')
@@ -264,104 +249,6 @@ def PrintException():
 	Printer("-"*60)
 	return formated_lines[-1]
 
-## A class used to register and listen to events	
-class LHMT_Event():
-	def __init__(self):
-		self.listeners = []
-	def Register(self, who):
-		try: self.listeners.remove(who)
-		except: pass
-		self.listeners.append(who)
-	def Unregister(self, who):
-		self.listeners.remove(who)
-	def Trigger(self, *args, **kwargs):
-		for l in self.listeners: l(*args, **kwargs)
-	def Update(self):
-		pass
-		
-## Base class that includes the update loop
-class LHMT_Base():
-	def __init__(self):			
-		self.events = {}
-		self.running = False
-		self.fps = 0
-		self.fpsChanged = False
-		self.exceptions = 0
-		self.timeAtFirstException = time.time()
-	## Add a new event
-	def AddNewEvent(self, Event):
-		if not type(Event) == type: raise RuntimeError("Invalid event")
-		self.events[Event] = Event() 
-	
-	## Remove an event
-	def RemoveEvent(self, Event):
-		self.events.remove(Event)
-	
-	## Get an event
-	def GetEvent(self, Event):
-		return self.events[Event]	
-	
-	## Returns the framerate of the app
-	def GetFPS(self):
-		t = self.fpsChanged
-		self.fpsChanged = False
-		return t, self.fps
-	def CatchException(self, e,*args):
-		if type(e) == LHMT_ConnectionLost:
-			PrintException()
-			with Status("Cleaning up"): e.socket.Delete()
-		else:
-			timeOfException = time.time()
-			if timeOfException - self.timeAtFirstException < 0.5:
-				self.exceptions += 1
-				if self.exceptions >= 5:
-					self.running = False
-			else:
-				self.exceptions = 0
-			self.timeAtFirstException = timeOfException
-			PrintException()
-
-	## The entrypoint for the update loop
-	def Start(self):
-		self.running = True
-		self.fps = 0
-		t1 = t2 = time.time()
-		frameCount = 0
-		timeCount = 0
-		printWarning("Application Started")
-		while self.running:
-			try:
-					
-				t2 = time.time()
-			
-				# FPS		
-				dt = t2- t1
-				t1 = t2
-			
-				frameCount += 1
-				timeCount += dt
-				if timeCount >= 1:
-					self.fps = frameCount	
-					self.fpsChanged = True
-					frameCount = 0
-					timeCount = 0
-				
-				for e in self.events: self.events[e].Update()
-				self.Update()
-			except Exception as e:
-				self.CatchException(e)
-				
-	def Update(self):
-		pass
-	def Stop(self):
-		self.running = False
-
-def Func1():
-	for i, j in Status("Writing", enumerate = [1,2]):
-		pass
-def Func2():
-	for i, j in Status("Writing Measurements", enumerate = ["Enum1"]):
-		Func1()
 import sys
 argv = {}
 i = 0
@@ -378,6 +265,13 @@ Status_Importer(**argv)
 		
 		
 if __name__ == "__main__":
+	def Func1():
+		for i, j in Status("Writing", enumerate = [1,2]):
+			pass
+	def Func2():
+		for i, j in Status("Writing Measurements", enumerate = ["Enum1"]):
+			Func1()
+	
 
 	with Status_Info("Test") as s:
 		pass

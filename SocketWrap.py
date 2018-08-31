@@ -1,8 +1,9 @@
 from enum import Enum
 import pickle
 import json
-import socket
+import socket as _socket
 import numpy as np
+from Log import *
 
 LONG_STR_LENGHT = 256
 SHORT_STR = 1
@@ -14,12 +15,12 @@ FILE = 6
 PICKLE = 7
 LIST = 8
 
-class InvalidAddressOrPort(Exception)
+class InvalidAddressOrPort(Exception):
 	def __init__(self, address, port):
 		super().__init__("Invalid address or port. Address: {}, Port: {}".format(address, port))
-class ConnectionLost(Exception)
+class ConnectionLost(Exception):
 	def __init__(self, socket):
-		super().__init__("Connection to {}:{} lost".format(socket.address, socket.port) 
+		super().__init__("Connection to {}:{} lost".format(socket.address, socket.port))
 		self.socket = socket
 		
 ## A wrapper for sockets that automatically resolves what is going to be sent and received.
@@ -33,7 +34,7 @@ class Socket():
 	# @param socket The socket to wrap. If None will create a new socket
 	def __init__(self, socket = None):
 		if socket is None:
-			socket = socket(socket.AF_INET, socket.SOCK_STREAM)
+			socket = _socket.socket(_socket.AF_INET, _socket.SOCK_STREAM)
 		self.socket = socket
 		self.address = None
 		self.port = None
@@ -61,19 +62,39 @@ class Socket():
 			toRead -= nbytes
 		return ret
 	
-	## Bride to base socket
+	## Bridge to base socket
 	def connect(self, address, port):
 		self.address = address
 		self.port = port
 		self.socket.connect((address, port))
 		
-	## Bride to base socket
+	## Bridge to base socket
 	def close(self):
 		self.socket.close()
 	
-	## Bride to base socket
+	## Bridge to base socket
 	def settimeout(self, *args):
 		self.socket.settimeout(*args)
+		
+	## Bridge to base socket
+	def settimeout(self, *args):
+		self.socket.settimeout(*args)
+	
+	## Bridge to base socket
+	def bind(self, address, port):
+		self.address = address
+		self.port = port
+		self.socket.bind((address, port))
+		
+	## Bridge to base socket
+	def listen(self, *args):
+		self.socket.listen(*args)
+		
+	## Bridge to base socket
+	def accept(self, *args):
+		client, address = self.socket.accept(*args)
+		printDebug("Connected to", address)
+		return Socket(client), address
 		
 	## Send a message. Will send size first followed by the message.
 	#
@@ -124,7 +145,7 @@ class Socket():
 	# \warning This is intended for internal purposes and should not be used from the outside
 	# @param type The type of the object
 	# @param data Additional data to send, can be the actual value of for example an int or the size of an array. This speeds up communication for small types, by removing the need to send multiple messages.
-	def __sendType(self, type, data = ()):
+	def _sendType(self, type, data = ()):
 		try: toSend = json.dumps((type, data)).encode()
 		except: toSend = pickle.dumps((type, data))
 		self._send(toSend) 
@@ -170,7 +191,7 @@ class Socket():
 	# @param shape_dtype Tuple containing the shape and dtype (in that order).
 	def _recvNumpyArray(self, shape_dtype ):
 		shape, dtype = shape_dtype
-		bytes = self._recv()
+		bytes = self._recvData()
 		array = np.frombuffer(bytes, dtype)
 		array.shape = shape
 		return array
@@ -225,11 +246,11 @@ class Socket():
 		elif isinstance(msg, int):
 			self._sendType(INT, msg)
 		elif isinstance(msg, Enum):
-			self._sendType(ENUM, msg.value)
+			self._sendType(ENUM, msg)
 		elif type(msg) is np.ndarray:
-			self.__sendNumpyArray(msg)
+			self._sendNumpyArray(msg)
 		elif type(msg).__name__ == 'BufferedReader':
-			self.__sendFile(msg)	
+			self._sendFile(msg)	
 		else:
 			printWarning("Sending with pickle") # This can be slow!
 			self._sendType(PICKLE)	
@@ -250,13 +271,13 @@ class Socket():
 		elif type == INT:
 			return msg
 		elif type == ENUM:
-			return LHMT_Commands(msg)
+			return msg
 		elif type == NUMPY_ARRAY:
 			return self._recvNumpyArray(msg)
 		elif type == LIST:
 			return msg
 		elif  type == FILE:
-			return self.__recvFile(msg, *args, **kwargs)
+			return self._recvFile(msg, *args, **kwargs)
 		elif type == PICKLE:
 			bytes = self._recvData()
 			ret = pickle.loads(bytes)
@@ -283,36 +304,31 @@ if __name__ == "__main__":
 			self.a = 1
 			self.b = "Test"
 			self.c = 2.3
+	class TestEnum(Enum):
+		A = 1
+		B = 2
+		C = 3
 	class Test():
-		def __init__(self, bluetooth = False):
-			if bluetooth:
-				import bluetooth as bt
-				listener = bt.BluetoothSocket(bt.RFCOMM)
-				listener.bind(("00:1A:7D:DA:71:0D", 3))	
-			else:
-				listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-				listener.bind(("127.0.0.1", 8080))
-				
+		def __init__(self):
+
+			listener = Socket()
+			listener.bind("127.0.0.1", 8080)
 			listener.listen(1)
+			
 			self.client = None
 			def Run():
 				self.client, addr = listener.accept()
 			from threading import Thread
 			thread = Thread(target = Run)
+			thread.daemon = True
 			thread.start()
 
-			if bluetooth:
-				self.connection = bt.BluetoothSocket(bt.RFCOMM)
-				self.connection.connect(("00:1A:7D:DA:71:0D", 3))
-			else:
-				self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-				self.connection.connect(("127.0.0.1", 8080))
+			self.connection = Socket()
+			self.connection.connect("127.0.0.1", 8080)
 			import time
 			time.sleep(2)
-			assert self.connection is not None
 			assert self.client is not None
-			self.connection = SocketHandler(self.connection)
-			self.client = SocketHandler(self.client)
+
 			
 		def SendInt(self):
 			with Status_Info("Connection -> Client"):
@@ -402,9 +418,9 @@ if __name__ == "__main__":
 			os.remove("Test.txt")
 			os.remove("Test2.txt")
 		def SendEnum(self):
-			self.connection.Send(LHMT_Commands.SEND_LOG)
+			self.connection.Send(TestEnum.A)
 			recv = self.client.Recv()
-			assert recv == LHMT_Commands.SEND_LOG
+			assert recv == TestEnum.A
 	#with Status_Info("Normal socket"):
 	with Status_Info("Initiating test"): test = Test()
 	with Status_Info("SendInt"): test.SendInt()
