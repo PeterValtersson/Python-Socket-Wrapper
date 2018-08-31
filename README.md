@@ -25,7 +25,7 @@ import numpy as np
 array = np.random.rand(3,2)
 sock.send(array)
 
-# Anything that can be pickled is suppored (Since Pickle slow, it is only used as a last resort).
+# Anything that can be pickled is suppored (Since Pickle can be quite slow, it is only used as a last resort).
 class Test:
   def __init__(self):
     self.a = 1
