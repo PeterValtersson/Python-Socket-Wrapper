@@ -373,7 +373,7 @@ if __name__ == "__main__":
 				self.client.send(msg)
 				s = self.connection.recv()
 				assert s == msg
-		def _sendNumpyArray(self):
+		def SendNumpyArray(self):
 			with Status_Info("Small int"):
 				array = np.array([[1,2,3],[4,5,6]])
 				self.connection.send(array)
@@ -405,7 +405,7 @@ if __name__ == "__main__":
 			assert recv.a == data.a
 			assert recv.b == data.b
 			assert recv.c == data.c
-		def _sendFile(self):
+		def SendFile(self):
 			with open("Test.txt", "w") as f:
 				f.write("Test")
 			with open("Test.txt", "rb") as f:
@@ -426,10 +426,10 @@ if __name__ == "__main__":
 	with Status_Info("SendInt"): test.SendInt()
 	with Status_Info("SendShortStr"): test.SendShortString()
 	with Status_Info("SendLongStr"): test.SendLongString()
-	with Status_Info("_sendNumpyArray"): test._sendNumpyArray()
+	with Status_Info("_sendNumpyArray"): test.SendNumpyArray()
 	with Status_Info("SendList"): test.SendList()
 	with Status_Info("SendClass"): test.SendClass()
-	with Status_Info("_sendFile"): test._sendFile()
+	with Status_Info("_sendFile"): test.SendFile()
 	with Status_Info("SendEnum"): test.SendEnum()
 	'''with Status_Info("Bluetooth socket"):
 		with Status_Info("Initiating test"): test = Test(bluetooth = True)
