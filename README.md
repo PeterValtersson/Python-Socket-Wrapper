@@ -43,7 +43,7 @@ listener = SocketWrap.Socket()
 listener.bind("192.168.4.1", 8080)
 listener.listen(1)
 
-client = listener.accept()
+client, address = listener.accept()
 print(client.recv()) # Prints 'Hello'
 print(client.recv()) # Prints '5'
 print(client.recv()) # Prints '("Tuple", True)'
