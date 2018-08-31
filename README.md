@@ -18,7 +18,7 @@ sock.send("Hello")
 sock.send(5)
 sock.send(("Tuple", True))
 
-sock.recv() # 
+sock.recv() # You can communicate both ways.
 
 # Numpy arrays are supported
 import numpy as np
