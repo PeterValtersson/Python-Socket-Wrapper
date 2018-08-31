@@ -26,11 +26,11 @@ class Socket():
 
 	## Constructor
 	#
-	# @param socket The socket to wrap. If None will create a new
+	# @param socket The socket to wrap. If None will create a new socket
 	# @param cleanupCallback Function to call if clean function is called.
 	def __init__(self, socket = None, cleanupCallback = lambda:None):
 		if socket is None:
-			socket = socket(socket.AF_INET, socket.SOCK_STREAM)	
+			socket = socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.socket = socket
 		self.cleanupCallback = cleanupCallback
 		try:

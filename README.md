@@ -11,8 +11,8 @@ The main goal of this project has been to hide the raw data from the user and to
 ```python
 ##### Client
 import SocketWrap
-sock = SocketWrap.Socket("192.168.4.1", 8080")
-sock.connect()
+sock = SocketWrap.Socket()
+sock.connect("192.168.4.1", 8080)
 
 sock.send("Hello")
 sock.send(5)
@@ -25,18 +25,18 @@ import numpy as np
 array = np.random.rand(3,2)
 sock.send(array)
 
-# Anything that can be pickled is suppored
+# Anything that can be pickled is suppored (Since Pickle slow, it is only used as a last resort).
 class Test:
   def __init__(self):
     self.a = 1
     self.b = "Hello"
     self.c = np.array([1,2,3])
- sock.send(Test())
+sock.send(Test())
 
 ##### Server
 import SocketWrap
-listener = SocketWrap.Socket("192.168.4.1", 8080")
-listener.bind()
+listener = SocketWrap.Socket()
+listener.bind("192.168.4.1", 8080)
 listener.listen(1)
 
 client = listener.accept()
