@@ -6,7 +6,7 @@ I was using python during work and had to use sockets. Seeing as how python shou
 
 The main goal of this project has been to hide the raw data from the user and to provide a very simple interface that will automatically send any kind of data.
 
-# Usage
+## Usage
 
 ```python
 ##### Client
