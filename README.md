@@ -2,9 +2,9 @@
 A wrapper class for the python socket with automatic type deduction for both sending and receiving messages.
 
 
-I was using python during work and had to use sockets. Seeing as how python should be a high level language I was utterly dumbfounded that python sockets expects you to know how big something is in bytes. I found pythons support for raw data very diffuse but in the end ended up with this.
+I was using python during work and had to use sockets. When I didn't find any adducate libraries I made my own.
 
-The main goal of this project has been to hide the raw data from the user and to provide a very simple interface that will automatically send any kind of data.
+The main goal of this project has been to hide the raw data from the user and to provide a very simple interface that will automatically send any kind of "simple" data.
 
 ## Usage
 
